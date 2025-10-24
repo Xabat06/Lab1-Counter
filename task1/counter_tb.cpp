@@ -5,6 +5,9 @@
 int main(int argc, char **argv, char **env) {
     int i;
     int clk;
+    int pause_cycles = 3;
+    int cycles_left = 0;
+    int prev_count = 0;  // new variables for the delay
 
     Verilated::commandArgs(argc, argv);
     // init top verilog instance
@@ -30,7 +33,21 @@ int main(int argc, char **argv, char **env) {
             top->eval ();
         }
         top->rst = (i < 2) | (i == 15);
-        top->en = (i > 4);
+
+        if (cycles_left > 0) { // keep en low on pause
+            cycles_left -= 1;
+            top->en = 0;
+        }
+        else {
+            top->en = (i > 4);
+        }
+
+        if (top->count == 0x9 && prev_count != 0x9 && cycles_left == 0) {
+            cycles_left = pause_cycles - 1; // because there is a 1 cycle delay
+            top->en = 0;
+        }
+        prev_count = top->count; // to prevent count is not stuck at 0x9
+
         if (Verilated::gotFinish()) exit(0);
     }
     tfp->close();
