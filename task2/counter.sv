@@ -10,6 +10,9 @@ module counter #(
 
 always_ff @ (posedge clk or posedge rst)  // asynchronous reset
     if (rst) count <= {WIDTH{1'b0}};
-    else count <= count + {{WIDTH-1{1'b0}}, en};
+    else begin 
+        if (en == 1) count <= count + {{WIDTH-1{1'b0}}, en};
+        else count <= count + 8'b11111111; // -1
+    end
 
 endmodule
